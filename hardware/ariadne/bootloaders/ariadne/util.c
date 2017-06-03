@@ -13,6 +13,7 @@
 #include <util/delay.h>
 
 #include "util.h"
+#include "tftp.h"
 #include "spi.h"
 #include "debug.h"
 #include "debug_util.h"
@@ -52,12 +53,15 @@ void resetTick(void)
 
 uint8_t timedOut(void)
 {
-	// Never timeout if there is no code in Flash
+	// Don't bypass timeout [logic] when tftp is active.
+	if (tftpFlashing == FALSE) {
+		// Never timeout if there is no code in Flash
 #if (FLASHEND > 0x10000)
-	if(pgm_read_word_far(0x0000) == 0xFFFF) return(0);
+		if(pgm_read_word_far(0x0000) == 0xFFFF) return(0);
 #else
-	if(pgm_read_word_near(0x0000) == 0xFFFF) return(0);
+		if(pgm_read_word_near(0x0000) == 0xFFFF) return(0);
 #endif
+	}
 
 	if(tick > TIMEOUT) return(1);
 	else return(0);
