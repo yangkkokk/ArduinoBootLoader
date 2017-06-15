@@ -15,12 +15,13 @@
 #include "util.h"
 #include "tftp.h"
 #include "spi.h"
+#include "tftp.h"
 #include "debug.h"
 #include "debug_util.h"
 
 static uint16_t last_timer_1;
 static uint16_t tick = 0;
-
+static uint8_t resetRequried = FALSE;
 
 void updateLed(void)
 {
@@ -53,16 +54,36 @@ void resetTick(void)
 
 uint8_t timedOut(void)
 {
-	// Don't bypass timeout [logic] when tftp is active.
-	if (tftpFlashing == FALSE) {
-		// Never timeout if there is no code in Flash
-#if (FLASHEND > 0x10000)
-		if(pgm_read_word_far(0x0000) == 0xFFFF) return(0);
-#else
-		if(pgm_read_word_near(0x0000) == 0xFFFF) return(0);
-#endif
-	}
-
+	// Never timeout if there is no code in Flash
+	if (pgm_read_word(0x0000) == 0xFFFF) return(0);
+	
 	if(tick > TIMEOUT) return(1);
 	else return(0);
+}
+
+// Helper method for initiated socket reset.
+// main loop will reset the socket when needed.
+void resetSocket(void)
+{
+	resetRequried = TRUE;
+}
+
+//
+// Determine the conditions for reseting server OR reseting socket:
+//
+uint8_t socketResetRequried(void)
+{
+	// 1. Explicity requested, by resetSocket method.
+	if (resetRequried) {
+		resetRequried = FALSE;
+		return(1);
+	}
+
+	//	2. tftp is active too long without calling "resetTick" (otherwise we whoudn't be here).
+	//	3. TODO: add ethernet initialize error, why not try again.. after some time passed.
+	if (tick > TIMEOUT) {
+		if (tftpFlashing == TRUE) return(1);
+	}
+
+	return(0);
 }
