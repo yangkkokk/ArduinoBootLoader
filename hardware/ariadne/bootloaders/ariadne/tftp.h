@@ -32,6 +32,7 @@
 #define ERROR_FULL    3
 #define FINAL_ACK     4 /// Like an ACK, but for the final data packet. Internal use only.
 #define INVALID_IMAGE 5
+#define ERROR_CRC     6
 
 
 #if defined(__AVR_ATmega328P__)

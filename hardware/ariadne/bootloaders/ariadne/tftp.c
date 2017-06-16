@@ -8,6 +8,7 @@
  */
 
 #include <avr/pgmspace.h>
+#include <util/crc16.h>
 #include <util/delay.h>
 #include <avr/boot.h>
 
@@ -37,12 +38,18 @@ const unsigned char tftp_unknown_error_packet[] PROGMEM = "\0\5" "\0\0" "Error";
 #define TFTP_INVALID_IMAGE_LEN 23
 const unsigned char tftp_invalid_image_packet[] PROGMEM = "\0\5" "\0\0" "Invalid image file";
 
+/** CRC error: bad crc calculation */
+#define TFTP_CRC_ERROR_LEN 14
+const unsigned char tftp_crc_error_packet[] PROGMEM = "\0\5" "\0\0" "CRC error";
+
+
 uint8_t tftpFlashing;
 
 #ifndef TFTP_RANDOM_PORT
 static uint16_t tftpTransferPort;
 #endif
 
+static uint16_t crc;
 static uint16_t lastPacket = 0, highPacket = 0;
 
 
@@ -224,6 +231,7 @@ static uint8_t processPacket(void)
 #endif
 			)
 
+			crc = 0;
 			lastPacket = highPacket = 0;
 			returnCode = ACK; // Send back acknowledge for packet 0
 			break;
@@ -263,6 +271,16 @@ static uint8_t processPacket(void)
 				// Set the return code before packetLength gets rounded up
 				if(packetLength < TFTP_DATA_SIZE) returnCode = FINAL_ACK;
 				else returnCode = ACK;
+
+				// Crc Calculation before packetLength gets rounded up.
+				for (offset = 0; offset < packetLength; offset++) {
+					crc = _crc_xmodem_update(crc, pageBase[offset]);
+				}
+
+				DBG_TFTP(
+					tracePGMlnTftp(mDebugTftp_CRC);
+					tracenum(crc);
+				)
 
 				// Round up packet length to a full flash sector size
 				while(packetLength % SPM_PAGESIZE) packetLength++;
@@ -319,10 +337,17 @@ static uint8_t processPacket(void)
 					// Flash is complete
 					// Hand over to application
 
-					DBG_TFTP(tracePGMlnTftp(mDebugTftp_DONE);)
+					if (crc == 0) {
+						DBG_TFTP(tracePGMlnTftp(mDebugTftp_DONE);)
 
-					// Flag the image as valid since we received the last packet
-					eeprom_write_byte(EEPROM_IMG_STAT, EEPROM_IMG_OK_VALUE);
+						// Flag the image as valid since we received the last packet
+						eeprom_write_byte(EEPROM_IMG_STAT, EEPROM_IMG_OK_VALUE);
+					} else {
+						returnCode = ERROR_CRC;
+						resetSocket();
+
+						DBG_TFTP(tracePGMlnTftp(mDebugTftp_CRCERR);)
+					}
 				}
 			}
 
@@ -412,6 +437,16 @@ static void sendResponse(uint16_t response)
 			memcpy_PF(txBuffer, PROGMEM_OFFSET + (uint32_t)(uint16_t)tftp_full_error_packet, packetLength);
 #else
 			memcpy_P(txBuffer, tftp_full_error_packet, packetLength);
+#endif
+			break;
+
+		case ERROR_CRC:
+			// Send crc error packet
+			packetLength = TFTP_CRC_ERROR_LEN;
+#if (FLASHEND > 0x10000)
+			memcpy_PF(txBuffer, PROGMEM_OFFSET + (uint32_t)(uint16_t)tftp_crc_error_packet, packetLength);
+#else
+			memcpy_P(txBuffer, tftp_crc_error_packet, packetLength);
 #endif
 			break;
 
