@@ -6,4 +6,10 @@
 *.kdev*
 *.geany
 *.pdf
+*.hex
+*.config
+*.creator
+*.user
+*.files
+*.includes
 Doxyfile
