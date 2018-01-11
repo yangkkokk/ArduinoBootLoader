@@ -106,15 +106,7 @@ int main(void)
 	tftpFlashing = FALSE;
 
 	for(;;) {
-		// If there is no serial flashing under way, poll tftp
-		if(!serialFlashing)
-			// If tftp recieved a FINAL_ACK, break
-			if(tftpPoll() == 0) break;
-
-		// If there is no tftp flashing, poll serial
-		if(!tftpFlashing)
-			// If flashing is done exit
-			if(serialPoll() == 0) break;
+        if(tftpPoll() == 0) break;
 
 		/* As explained above this goes out */
 #if defined(ANNOUNCE)
