@@ -72,7 +72,9 @@ int main(void)
 	if(eeprom_read_byte(EEPROM_MAJVER) != ARIADNE_MAJVER)
 		eeprom_write_byte(EEPROM_MAJVER, ARIADNE_MAJVER);
 	if(eeprom_read_byte(EEPROM_MINVER) != ARIADNE_MINVER)
-		eeprom_write_byte(EEPROM_MINVER, ARIADNE_MINVER);
+        eeprom_write_byte(EEPROM_MINVER, ARIADNE_MINVER);
+    if(eeprom_read_byte(EEPROM_RELEASE) != ARIADNE_RELEASE)
+        eeprom_write_byte(EEPROM_RELEASE, ARIADNE_RELEASE);
 
 	/* Initialize UART communication */
 	serialInit();
