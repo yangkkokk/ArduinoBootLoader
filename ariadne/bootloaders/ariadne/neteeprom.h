@@ -26,8 +26,8 @@
 #define ARIADNE_MINVER 4
 #define ARIADNE_RELEASE 1
 
-#define EEPROM_IMG_OK_VALUE  (0xEE)
-#define EEPROM_IMG_BAD_VALUE (0xFF)
+#define EEPROM_IMG_OK_VALUE  (0xFF) //initially there is a correct code uploaded
+#define EEPROM_IMG_BAD_VALUE (0x00)
 
 #define EEPROM_SIG_1_VALUE   (0x55)
 #define EEPROM_SIG_2_VALUE   (0xAA)
