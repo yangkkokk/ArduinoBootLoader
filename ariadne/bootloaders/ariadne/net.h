@@ -15,7 +15,7 @@
 #define IP_ADDR     10,0,0,97
 #define SUB_MASK    255,255,255,0
 #define GW_ADDR     10,0,0,99
-#define MAC_ADDR    0xDE,0xAD,0xBE,0xEF,0xFE,0xED
+#define MAC_ADDR    0xAE,0x35,0xC1,0xEE,0x23,0x56
 
 void netInit(void);
 

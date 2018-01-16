@@ -25,13 +25,11 @@
 	#include "announce.h"
 #endif
 
-
 int  main(void) __attribute__ ((OS_main)) __attribute__ ((section (".init9")));
 void appStart(void) __attribute__ ((naked));
 
 int main(void)
 {
-    uint8_t ch;
 
     /* This code makes the following assumptions:
      * No interrupts will execute
@@ -46,9 +44,9 @@ int main(void)
 
     /* Disable the watchdog timer to prevent
 	 * eternal reset loop of doom and despair */
-    ch = MCUSR;
+    uint8_t wdt_reset = MCUSR & _BV(WDRF);
     MCUSR = 0;
-    if(ch & (_BV(WDRF) | _BV(BORF) | _BV(PORF)))
+    if(!wdt_reset)
         if(eeprom_read_byte(EEPROM_IMG_STAT) == EEPROM_IMG_OK_VALUE)
             appStart();
 	wdt_enable(WDTO_8S);
