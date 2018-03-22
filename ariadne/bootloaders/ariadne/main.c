@@ -42,6 +42,15 @@ int main(void)
     SP = RAMEND;  // This is done by hardware reset
 #endif
 
+    /* Write version information in the EEPROM */	
+    if(eeprom_read_byte(EEPROM_MAJVER) != ARIADNE_MAJVER)
+	eeprom_write_byte(EEPROM_MAJVER, ARIADNE_MAJVER);
+    if(eeprom_read_byte(EEPROM_MINVER) != ARIADNE_MINVER)
+        eeprom_write_byte(EEPROM_MINVER, ARIADNE_MINVER);
+    if(eeprom_read_byte(EEPROM_RELEASE) != ARIADNE_RELEASE)
+        eeprom_write_byte(EEPROM_RELEASE, ARIADNE_RELEASE);
+
+
     /* Disable the watchdog timer to prevent
 	 * eternal reset loop of doom and despair */
     uint8_t wdt_reset = MCUSR & _BV(WDRF);
@@ -65,14 +74,6 @@ int main(void)
 	// 0x05 -> ClkIO/1024 -> 64us period, 4096ms max
 	// Set up Timer 1 as timekeeper for LED flashing
 	TCCR1B = _BV(CS12); // Same thing as TCCR1B = 0x04;
-
-	/* Write version information in the EEPROM */
-	if(eeprom_read_byte(EEPROM_MAJVER) != ARIADNE_MAJVER)
-		eeprom_write_byte(EEPROM_MAJVER, ARIADNE_MAJVER);
-	if(eeprom_read_byte(EEPROM_MINVER) != ARIADNE_MINVER)
-        eeprom_write_byte(EEPROM_MINVER, ARIADNE_MINVER);
-    if(eeprom_read_byte(EEPROM_RELEASE) != ARIADNE_RELEASE)
-        eeprom_write_byte(EEPROM_RELEASE, ARIADNE_RELEASE);
 
 	/* Initialize UART communication */
 	serialInit();
