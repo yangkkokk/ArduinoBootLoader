@@ -191,6 +191,31 @@ debug328_w5500_isp: HFUSE = D0
 # 2.7V brownout
 debug328_w5500_isp: EFUSE = FD
 debug328_w5500_isp: isp
+# LGT8F328E
+#
+lgt8f328d: EXT_OSC ?= 0
+lgt8f328d: TARGET = lgt8f328d
+lgt8f328d: MCU_TARGET = atmega328p
+lgt8f328d: CFLAGS += $(COMMON_OPTIONS)
+#lgt8f328d: CFLAGS += $(COMMON_OPTIONS) '-DSOFT_UART'
+lgt8f328d: CFLAGS += '-DVIRTUAL_BOOT_PARTITION' '-D__WIZ_W5500__' '-DDEBUG_MAIN=1' '-DDEBUG_NET=1' '-DDEBUG_TFTP=1' '-DBAUD_RATE=115200'
+lgt8f328d: AVR_FREQ ?= 16000000L 
+lgt8f328d: LDSECTIONS = -Wl,--section-start=.bootv=0x0
+lgt8f328d: LDSECTIONS += -Wl,--section-start=.text=0x7400 -Wl,--section-start=.version=0x77fe
+lgt8f328d: $(PROGRAM)_lgt8f328d.elf
+lgt8f328d: $(PROGRAM)_lgt8f328d.hex
+lgt8f328d: $(PROGRAM)_lgt8f328d.lst
+
+lgt8f328d_isp: lgt8f328d
+lgt8f328d_isp: TARGET = lgt8f328d
+lgt8f328d_isp: MCU_TARGET = atmega323p
+debug328_w5500_isp: LFUSE = FF
+# 4096 byte boot, SPIEN
+lgt8f328d_ispp: HFUSE = D0
+# 2.7V brownout
+lgt8f328d_isp_isp: EFUSE = FD
+lgt8f328d_isp_isp: isp
+lgt8f328d_isp: isp
 
 # Debug build for Arduino Mega2560
 debug2560_w5100: TARGET = debug2560_w5100
